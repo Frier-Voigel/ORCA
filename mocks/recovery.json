@@ -1,0 +1,72 @@
+{
+  "options": [
+    {
+      "strategy": "failover_to_replica",
+      "target": "db-primary",
+      "services_saved": 6,
+      "est_recovery_s": 45.0,
+      "cost": 0.4,
+      "risk": 0.2,
+      "score": 0.87,
+      "recommended": true,
+      "rationale": "Reroutes reads to the replica, keeping 6 dependants alive",
+      "projected_health": [
+        0.4,
+        0.5,
+        0.7,
+        0.9
+      ]
+    },
+    {
+      "strategy": "shed_load",
+      "target": "api-gateway",
+      "services_saved": 4,
+      "est_recovery_s": 20.0,
+      "cost": 0.3,
+      "risk": 0.3,
+      "score": 0.68,
+      "recommended": false,
+      "rationale": "Drops non-essential traffic to reduce load on db-primary while stabilizing core transactions",
+      "projected_health": [
+        0.4,
+        0.55,
+        0.65,
+        0.75
+      ]
+    },
+    {
+      "strategy": "circuit_breaker_isolate",
+      "target": "order-service",
+      "services_saved": 3,
+      "est_recovery_s": 30.0,
+      "cost": 0.5,
+      "risk": 0.4,
+      "score": 0.55,
+      "recommended": false,
+      "rationale": "Isolates failing payment and db calls to prevent gateway worker starvation",
+      "projected_health": [
+        0.4,
+        0.48,
+        0.58,
+        0.65
+      ]
+    },
+    {
+      "strategy": "restart",
+      "target": "db-primary",
+      "services_saved": 2,
+      "est_recovery_s": 90.0,
+      "cost": 0.6,
+      "risk": 0.7,
+      "score": 0.38,
+      "recommended": false,
+      "rationale": "Full restart clears hung queries but drops active connections during reboot",
+      "projected_health": [
+        0.2,
+        0.25,
+        0.6,
+        0.8
+      ]
+    }
+  ]
+}

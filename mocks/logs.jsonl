@@ -1,0 +1,15 @@
+{"ts": 1729999955.0, "service": "db-primary", "level": "WARN", "message": "Connection pool saturation reached 92% of max limit (100)"}
+{"ts": 1729999970.0, "service": "db-primary", "level": "ERROR", "message": "slow query detected: SELECT * FROM orders JOIN transactions WHERE created_at > ... elapsed 3200ms"}
+{"ts": 1729999975.0, "service": "payment", "level": "ERROR", "message": "timeout calling db-primary after 3000ms"}
+{"ts": 1729999980.0, "service": "order-service", "level": "WARN", "message": "retrying query to db-primary (attempt 2 of 3)"}
+{"ts": 1729999982.0, "service": "order-service", "level": "ERROR", "message": "downstream dependency payment degraded, error rate exceeded threshold 5%"}
+{"ts": 1729999985.0, "service": "inventory", "level": "WARN", "message": "db-primary latency spike: 620ms on stock reservation"}
+{"ts": 1729999988.0, "service": "auth", "level": "WARN", "message": "slow response from db-primary session lookup: 480ms"}
+{"ts": 1729999990.0, "service": "user-service", "level": "WARN", "message": "auth token validation latency elevated to 510ms"}
+{"ts": 1729999992.0, "service": "api-gateway", "level": "WARN", "message": "upstream order-service response time p95 reached 1450ms"}
+{"ts": 1729999995.0, "service": "api-gateway", "level": "ERROR", "message": "HTTP 504 Gateway Timeout on /checkout/complete"}
+{"ts": 1729999996.0, "service": "message-queue", "level": "INFO", "message": "queue depths normal, 5 unacknowledged messages"}
+{"ts": 1729999997.0, "service": "db-replica", "level": "INFO", "message": "replication lag 12ms behind db-primary"}
+{"ts": 1729999998.0, "service": "cache", "level": "INFO", "message": "cache hit ratio 94.2%, memory utilization normal"}
+{"ts": 1729999999.0, "service": "search", "level": "INFO", "message": "index query latency p95: 65ms"}
+{"ts": 1730000000.0, "service": "notification", "level": "INFO", "message": "processed 140 email/SMS delivery notifications"}

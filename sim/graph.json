@@ -1,0 +1,223 @@
+{
+  "nodes": {
+    "api-gateway": {
+      "type": "gateway",
+      "criticality": 1.0,
+      "lat": 80,
+      "cpu": 0.35,
+      "mem": 0.4,
+      "q": 10
+    },
+    "auth": {
+      "type": "service",
+      "criticality": 0.8,
+      "lat": 40,
+      "cpu": 0.3,
+      "mem": 0.35,
+      "q": 4
+    },
+    "user-service": {
+      "type": "service",
+      "criticality": 0.6,
+      "lat": 60,
+      "cpu": 0.3,
+      "mem": 0.4,
+      "q": 6
+    },
+    "order-service": {
+      "type": "service",
+      "criticality": 0.9,
+      "lat": 120,
+      "cpu": 0.4,
+      "mem": 0.45,
+      "q": 12
+    },
+    "payment": {
+      "type": "service",
+      "criticality": 0.95,
+      "lat": 150,
+      "cpu": 0.35,
+      "mem": 0.4,
+      "q": 8
+    },
+    "inventory": {
+      "type": "service",
+      "criticality": 0.7,
+      "lat": 70,
+      "cpu": 0.3,
+      "mem": 0.4,
+      "q": 6
+    },
+    "db-primary": {
+      "type": "database",
+      "criticality": 0.95,
+      "lat": 25,
+      "cpu": 0.45,
+      "mem": 0.55,
+      "q": 15,
+      "replica": "db-replica"
+    },
+    "db-replica": {
+      "type": "database",
+      "criticality": 0.5,
+      "lat": 30,
+      "cpu": 0.35,
+      "mem": 0.5,
+      "q": 8
+    },
+    "cache": {
+      "type": "cache",
+      "criticality": 0.5,
+      "lat": 5,
+      "cpu": 0.25,
+      "mem": 0.5,
+      "q": 2
+    },
+    "message-queue": {
+      "type": "queue",
+      "criticality": 0.6,
+      "lat": 15,
+      "cpu": 0.3,
+      "mem": 0.45,
+      "q": 20
+    },
+    "notification": {
+      "type": "service",
+      "criticality": 0.3,
+      "lat": 90,
+      "cpu": 0.2,
+      "mem": 0.3,
+      "q": 5
+    },
+    "search": {
+      "type": "service",
+      "criticality": 0.4,
+      "lat": 110,
+      "cpu": 0.4,
+      "mem": 0.45,
+      "q": 7
+    }
+  },
+  "edges": [
+    [
+      "api-gateway",
+      "auth",
+      0.7,
+      "hard"
+    ],
+    [
+      "api-gateway",
+      "user-service",
+      0.6,
+      "hard"
+    ],
+    [
+      "api-gateway",
+      "order-service",
+      0.8,
+      "hard"
+    ],
+    [
+      "api-gateway",
+      "search",
+      0.4,
+      "soft"
+    ],
+    [
+      "auth",
+      "cache",
+      0.5,
+      "soft"
+    ],
+    [
+      "auth",
+      "db-replica",
+      0.6,
+      "hard"
+    ],
+    [
+      "user-service",
+      "db-replica",
+      0.6,
+      "hard"
+    ],
+    [
+      "user-service",
+      "cache",
+      0.4,
+      "soft"
+    ],
+    [
+      "order-service",
+      "payment",
+      0.8,
+      "hard"
+    ],
+    [
+      "order-service",
+      "inventory",
+      0.7,
+      "hard"
+    ],
+    [
+      "order-service",
+      "db-primary",
+      0.9,
+      "hard"
+    ],
+    [
+      "order-service",
+      "message-queue",
+      0.5,
+      "soft"
+    ],
+    [
+      "payment",
+      "db-primary",
+      0.8,
+      "hard"
+    ],
+    [
+      "payment",
+      "auth",
+      0.5,
+      "hard"
+    ],
+    [
+      "inventory",
+      "db-primary",
+      0.8,
+      "hard"
+    ],
+    [
+      "inventory",
+      "cache",
+      0.4,
+      "soft"
+    ],
+    [
+      "search",
+      "db-replica",
+      0.6,
+      "hard"
+    ],
+    [
+      "search",
+      "cache",
+      0.5,
+      "soft"
+    ],
+    [
+      "notification",
+      "message-queue",
+      0.8,
+      "hard"
+    ],
+    [
+      "db-replica",
+      "db-primary",
+      0.5,
+      "soft"
+    ]
+  ]
+}

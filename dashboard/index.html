@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cascading Failure Predictor - Live Telemetry</title>
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --accent: #8b5cf6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); font-size: 14px; line-height: 1.5; overflow-x: hidden; }
+    
+    /* Layout */
+    .container { max-width: 1600px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+    header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--card-border); }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .logo { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; color: #fff; }
+    .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--success); box-shadow: 0 0 10px var(--success); animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+    
+    .status-badge { padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .badge-healthy { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-incident { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); animation: alertPulse 1.5s infinite; }
+    @keyframes alertPulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .metric-pill { background: #1f2937; padding: 6px 14px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .metric-pill strong { font-weight: 700; }
+
+    /* Controls Bar */
+    .controls-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--card-border); }
+    .control-group { display: flex; align-items: center; gap: 8px; }
+    select, button, input { background: #1f2937; color: #fff; border: 1px solid #374151; padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; cursor: pointer; transition: all 0.2s; }
+    select:hover, button:hover { background: #374151; border-color: #4b5563; }
+    button.btn-primary { background: var(--primary); border-color: var(--primary); font-weight: 600; }
+    button.btn-primary:hover { background: #2563eb; }
+    button.btn-danger { background: var(--danger); border-color: var(--danger); font-weight: 600; }
+    button.btn-danger:hover { background: #dc2626; }
+    button.btn-success { background: var(--success); border-color: var(--success); font-weight: 600; }
+    button.btn-success:hover { background: #059669; }
+
+    /* Grid */
+    .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; min-height: 520px; }
+    .card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--card-border); display: flex; flex-direction: column; overflow: hidden; }
+    .card-header { padding: 12px 16px; border-bottom: 1px solid var(--card-border); font-size: 14px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .card-body { padding: 16px; flex: 1; position: relative; }
+
+    /* Graph Canvas */
+    #graph-container { width: 100%; height: 380px; position: relative; background: #0d1322; border-radius: 8px; overflow: hidden; }
+    svg#graph-svg { width: 100%; height: 100%; }
+
+    /* Timeline Chart */
+    .timeline-container { height: 160px; margin-top: 12px; background: #0d1322; border-radius: 8px; padding: 8px; position: relative; }
+    svg#timeline-svg { width: 100%; height: 100%; }
+
+    /* Logs & RCA */
+    .side-stack { display: flex; flex-direction: column; gap: 16px; }
+    .rca-card { background: #131c2e; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; }
+    .rca-title { font-weight: 700; color: #f87171; display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .rca-desc { font-size: 13px; color: #cbd5e1; }
+    .rca-sub { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+
+    .log-stream { height: 260px; overflow-y: auto; font-family: monospace; font-size: 11px; display: flex; flex-direction: column; gap: 4px; padding-right: 4px; }
+    .log-stream::-webkit-scrollbar { width: 4px; }
+    .log-stream::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }
+    .log-entry { display: flex; gap: 8px; padding: 3px 6px; border-radius: 4px; background: rgba(255,255,255,0.02); }
+    .log-time { color: #64748b; }
+    .log-srv { color: #38bdf8; font-weight: 600; width: 95px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .log-lvl-ERROR { color: #f87171; font-weight: 700; width: 45px; }
+    .log-lvl-WARN { color: #fbbf24; font-weight: 700; width: 45px; }
+    .log-lvl-INFO { color: #60a5fa; width: 45px; }
+    .log-msg { color: #cbd5e1; flex: 1; word-break: break-all; }
+
+    /* Recovery Cards */
+    .recovery-section { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--card-border); padding: 16px; }
+    .recovery-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .recovery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+    .strategy-card { background: #131c2e; border: 1px solid #1e293b; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; transition: transform 0.2s, border-color 0.2s; position: relative; }
+    .strategy-card:hover { transform: translateY(-2px); border-color: #3b82f6; }
+    .strategy-card.recommended { border: 2px solid var(--success); box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+    .rec-badge { position: absolute; top: -10px; right: 12px; background: var(--success); color: #fff; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 9999px; text-transform: uppercase; }
+    .strat-name { font-size: 15px; font-weight: 700; color: #fff; }
+    .strat-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; }
+    .strat-meta div { background: #0f172a; padding: 4px 8px; border-radius: 6px; }
+    .strat-rationale { font-size: 12px; color: #94a3b8; font-style: italic; }
+    .sparkline-box { height: 28px; width: 100%; display: flex; align-items: flex-end; gap: 3px; }
+    .spark-bar { flex: 1; background: #3b82f6; border-radius: 2px 2px 0 0; }
+
+    /* Node Modal Inspector */
+    #node-details { font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; background: #0d1322; padding: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <div class="pulse-dot"></div>
+      <div class="logo">ORCA <span style="font-weight:400; color:#9ca3af;">| Cascading Failure Predictor</span></div>
+      <div id="incident-badge" class="status-badge badge-healthy">System Healthy</div>
+    </div>
+    <div class="header-right">
+      <div class="metric-pill">Health: <strong id="health-pct" style="color:#10b981;">100%</strong></div>
+      <div class="metric-pill">Tick: <strong id="tick-val">0</strong></div>
+      <div class="metric-pill">Status: <strong id="run-status" style="color:#3b82f6;">RUNNING</strong></div>
+    </div>
+  </header>
+
+  <!-- Controls Bar -->
+  <div class="controls-bar">
+    <div class="control-group">
+      <span style="font-weight:600; font-size:13px; color:#9ca3af;">Fault Injection:</span>
+      <select id="fault-service">
+        <option value="db-primary">db-primary</option>
+        <option value="order-service">order-service</option>
+        <option value="payment">payment</option>
+        <option value="api-gateway">api-gateway</option>
+        <option value="inventory">inventory</option>
+        <option value="auth">auth</option>
+        <option value="user-service">user-service</option>
+        <option value="cache">cache</option>
+        <option value="message-queue">message-queue</option>
+        <option value="notification">notification</option>
+        <option value="search">search</option>
+        <option value="db-replica">db-replica</option>
+      </select>
+      <select id="fault-type">
+        <option value="slow_query">slow_query</option>
+        <option value="memory_leak">memory_leak</option>
+        <option value="network_partition">network_partition</option>
+        <option value="bad_deploy">bad_deploy</option>
+        <option value="cpu_spike">cpu_spike</option>
+      </select>
+      <button class="btn-danger" onclick="injectFault()">Inject Fault</button>
+    </div>
+
+    <div class="control-group">
+      <button onclick="togglePlayPause()" id="btn-play">Pause</button>
+      <select id="speed-select" onchange="changeSpeed(this.value)">
+        <option value="1">Speed: 1x</option>
+        <option value="2">Speed: 2x</option>
+        <option value="5">Speed: 5x</option>
+      </select>
+      <button onclick="resetSim()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+    <!-- Center Left: Graph + Timeline -->
+    <div class="card">
+      <div class="card-header">
+        <span>Microservice Dependency Graph & Predicted Cascade Paths</span>
+        <span style="font-size:12px; color:#94a3af;">Edges: dependency (failure spreads in reverse)</span>
+      </div>
+      <div class="card-body">
+        <div id="graph-container">
+          <svg id="graph-svg"></svg>
+        </div>
+
+        <div style="margin-top:12px; font-weight:700; font-size:13px; display:flex; justify-content:space-between;">
+          <span>Failure Probability Timeline (Recent Ticks)</span>
+          <span style="font-size:11px; color:#9ca3af;">Risk [0% - 100%]</span>
+        </div>
+        <div class="timeline-container">
+          <svg id="timeline-svg"></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Right: RCA + Logs -->
+    <div class="side-stack">
+      <!-- Root Cause Card -->
+      <div class="card">
+        <div class="card-header">Root Cause Analysis (RCA)</div>
+        <div class="card-body" id="rca-container">
+          <div style="color:#94a3af; font-size:13px;">No active anomaly detected.</div>
+        </div>
+      </div>
+
+      <!-- Live Logs Card -->
+      <div class="card" style="flex:1;">
+        <div class="card-header">
+          <span>Live Service Logs</span>
+          <select id="log-filter" onchange="renderLogs()" style="padding:2px 8px; font-size:11px;">
+            <option value="ALL">All Services</option>
+          </select>
+        </div>
+        <div class="card-body">
+          <div class="log-stream" id="log-stream"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: Recovery Strategy Comparison -->
+  <div class="recovery-section">
+    <div class="recovery-header">
+      <div>
+        <span style="font-size:16px; font-weight:800;">Automated Recovery Strategy Evaluation</span>
+        <span style="font-size:12px; color:#94a3af; margin-left:12px;">Weights: Services Saved (50%), Time (20%), Risk (15%), Cost (15%)</span>
+      </div>
+      <span id="recovery-status-hint" style="font-size:12px; color:#10b981;">AI Ready</span>
+    </div>
+    <div class="recovery-grid" id="recovery-grid">
+      <div style="color:#9ca3af; font-size:13px;">Awaiting incident detection to rank recovery options...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let state = null;
+  let isRunning = true;
+  let currentSpeed = 1.0;
+  let pollInterval = null;
+
+  // Topological layout positions for 12 services in 700x360 canvas
+  const NODE_COORDS = {
+    "api-gateway": { x: 350, y: 35, type: "Gateway" },
+    "auth": { x: 140, y: 110, type: "Service" },
+    "user-service": { x: 280, y: 110, type: "Service" },
+    "order-service": { x: 420, y: 110, type: "Service" },
+    "search": { x: 570, y: 110, type: "Service" },
+    "payment": { x: 330, y: 195, type: "Service" },
+    "inventory": { x: 480, y: 195, type: "Service" },
+    "notification": { x: 620, y: 195, type: "Service" },
+    "cache": { x: 120, y: 285, type: "Cache" },
+    "db-primary": { x: 310, y: 290, type: "Database" },
+    "db-replica": { x: 470, y: 290, type: "Database" },
+    "message-queue": { x: 620, y: 285, type: "Queue" }
+  };
+
+  async function fetchState() {
+    try {
+      const res = await fetch("/api/state");
+      if (!res.ok) return;
+      state = await res.json();
+      renderAll();
+    } catch (err) {
+      console.warn("Poll state error:", err);
+    }
+  }
+
+  function renderAll() {
+    if (!state) return;
+
+    // Header stats
+    document.getElementById("tick-val").innerText = state.tick;
+    const healthPct = Math.round(state.system_health * 100);
+    const healthElem = document.getElementById("health-pct");
+    healthElem.innerText = healthPct + "%";
+    healthElem.style.color = healthPct > 80 ? "#10b981" : (healthPct > 50 ? "#f59e0b" : "#ef4444");
+
+    const badge = document.getElementById("incident-badge");
+    if (state.incident && state.incident.active && state.incident.fault) {
+      badge.className = "status-badge badge-incident";
+      badge.innerText = `INCIDENT: ${state.incident.fault.service} (${state.incident.fault.type})`;
+    } else {
+      badge.className = "status-badge badge-healthy";
+      badge.innerText = "SYSTEM HEALTHY";
+    }
+
+    isRunning = state.running;
+    document.getElementById("run-status").innerText = isRunning ? "RUNNING" : "PAUSED";
+    document.getElementById("btn-play").innerText = isRunning ? "Pause" : "Play";
+
+    renderGraph();
+    renderTimeline();
+    renderRCA();
+    renderLogs();
+    renderRecovery();
+  }
+
+  function renderGraph() {
+    const svg = document.getElementById("graph-svg");
+    svg.innerHTML = "";
+
+    const preds = {};
+    if (state.predictions && state.predictions.predictions) {
+      state.predictions.predictions.forEach(p => preds[p.service] = p.fail_prob);
+    }
+
+    // Defs for arrow markers
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    defs.innerHTML = `
+      <marker id="arrow" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
+      </marker>
+      <marker id="arrow-cascade" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+      </marker>
+    `;
+    svg.appendChild(defs);
+
+    // Active cascade paths from forecast
+    const cascadePaths = new Set();
+    if (state.cascade && state.cascade.paths) {
+      state.cascade.paths.forEach(p => {
+        if (p.prob > 0.4) cascadePaths.add(`${p.from_node || p.from}->${p.to_node || p.to}`);
+      });
+    }
+
+    // Draw Edges
+    if (state.graph && state.graph.edges) {
+      state.graph.edges.forEach(edge => {
+        const src = NODE_COORDS[edge.source];
+        const tgt = NODE_COORDS[edge.target];
+        if (!src || !tgt) return;
+
+        const isCascade = cascadePaths.has(`${edge.target}->${edge.source}`);
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", src.x);
+        line.setAttribute("y1", src.y);
+        line.setAttribute("x2", tgt.x);
+        line.setAttribute("y2", tgt.y);
+        line.setAttribute("stroke", isCascade ? "#ef4444" : "#334155");
+        line.setAttribute("stroke-width", isCascade ? "2.5" : "1.2");
+        line.setAttribute("stroke-dasharray", isCascade ? "4,4" : "none");
+        line.setAttribute("marker-end", isCascade ? "url(#arrow-cascade)" : "url(#arrow)");
+        svg.appendChild(line);
+      });
+    }
+
+    // Draw Nodes
+    Object.keys(NODE_COORDS).forEach(srv => {
+      const pos = NODE_COORDS[srv];
+      const failProb = preds[srv] || 0.0;
+
+      let color = "#10b981"; // Healthy
+      if (failProb >= 0.70) color = "#ef4444"; // Failed/High risk
+      else if (failProb >= 0.35) color = "#f59e0b"; // Degraded
+
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("cursor", "pointer");
+      g.onclick = () => alertServiceDetails(srv);
+
+      // Node base circle
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", pos.x);
+      circle.setAttribute("cy", pos.y);
+      circle.setAttribute("r", 18);
+      circle.setAttribute("fill", "#1e293b");
+      circle.setAttribute("stroke", color);
+      circle.setAttribute("stroke-width", "3");
+
+      if (failProb >= 0.70) {
+        circle.setAttribute("filter", "drop-shadow(0 0 6px #ef4444)");
+      }
+
+      // Text label
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", pos.x);
+      text.setAttribute("y", pos.y + 32);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("fill", "#cbd5e1");
+      text.setAttribute("font-size", "11px");
+      text.setAttribute("font-weight", "600");
+      text.textContent = srv;
+
+      // Probability Badge
+      const probText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      probText.setAttribute("x", pos.x);
+      probText.setAttribute("y", pos.y + 4);
+      probText.setAttribute("text-anchor", "middle");
+      probText.setAttribute("fill", color);
+      probText.setAttribute("font-size", "10px");
+      probText.setAttribute("font-weight", "800");
+      probText.textContent = Math.round(failProb * 100) + "%";
+
+      g.appendChild(circle);
+      g.appendChild(probText);
+      g.appendChild(text);
+      svg.appendChild(g);
+    });
+  }
+
+  function renderTimeline() {
+    const svg = document.getElementById("timeline-svg");
+    svg.innerHTML = "";
+    if (!state.history || !state.history.fail_prob) return;
+
+    const hist = state.history.fail_prob;
+    const services = Object.keys(hist);
+    if (!services.length) return;
+
+    const w = svg.clientWidth || 600;
+    const h = svg.clientHeight || 140;
+    const pad = 24;
+
+    // Draw axes
+    const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    axis.setAttribute("x1", pad);
+    axis.setAttribute("y1", h - pad);
+    axis.setAttribute("x2", w - pad);
+    axis.setAttribute("y2", h - pad);
+    axis.setAttribute("stroke", "#334155");
+    svg.appendChild(axis);
+
+    const colors = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899"];
+
+    // Plot top 4 services by latest fail_prob
+    const ranked = services.slice().sort((a,b) => {
+      const vA = hist[a][hist[a].length - 1] || 0;
+      const vB = hist[b][hist[b].length - 1] || 0;
+      return vB - vA;
+    }).slice(0, 4);
+
+    ranked.forEach((srv, idx) => {
+      const vals = hist[srv];
+      if (vals.length < 2) return;
+
+      const pts = vals.map((v, i) => {
+        const x = pad + (i / (vals.length - 1)) * (w - 2 * pad);
+        const y = (h - pad) - v * (h - 2 * pad);
+        return `${x},${y}`;
+      }).join(" ");
+
+      const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+      poly.setAttribute("points", pts);
+      poly.setAttribute("fill", "none");
+      poly.setAttribute("stroke", colors[idx % colors.length]);
+      poly.setAttribute("stroke-width", "2");
+      svg.appendChild(poly);
+
+      // Label at the end
+      const lastX = w - pad + 4;
+      const lastY = (h - pad) - (vals[vals.length - 1] || 0) * (h - 2 * pad);
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute("x", lastX);
+      label.setAttribute("y", Math.max(12, lastY));
+      label.setAttribute("fill", colors[idx % colors.length]);
+      label.setAttribute("font-size", "10px");
+      label.setAttribute("font-weight", "700");
+      label.textContent = srv;
+      svg.appendChild(label);
+    });
+  }
+
+  function renderRCA() {
+    const container = document.getElementById("rca-container");
+    if (!state.root_cause || !state.root_cause.candidates || !state.root_cause.candidates.length) {
+      container.innerHTML = `<div style="color:#94a3af; font-size:13px;">Healthy: No root cause candidates detected.</div>`;
+      return;
+    }
+
+    const top = state.root_cause.candidates[0];
+    const scorePct = Math.round(top.score * 100);
+
+    let html = `
+      <div class="rca-card">
+        <div class="rca-title">
+          <span>🚨 TOP SUSPECT: ${top.service}</span>
+          <span>Confidence: ${scorePct}%</span>
+        </div>
+        <div class="rca-desc">${top.explanation}</div>
+      </div>
+    `;
+
+    if (state.root_cause.candidates.length > 1) {
+      html += `<div style="font-size:11px; font-weight:700; color:#94a3af; margin:10px 0 4px 0;">RUNNER-UP SUSPECTS</div>`;
+      state.root_cause.candidates.slice(1, 3).forEach(c => {
+        html += `
+          <div style="font-size:12px; margin-bottom:4px; display:flex; justify-content:space-between; background:#0f172a; padding:4px 8px; border-radius:4px;">
+            <span>${c.service}</span>
+            <span style="color:#cbd5e1;">${Math.round(c.score * 100)}%</span>
+          </div>
+        `;
+      });
+    }
+
+    container.innerHTML = html;
+  }
+
+  function renderLogs() {
+    const filter = document.getElementById("log-filter").value;
+    const stream = document.getElementById("log-stream");
+    if (!state.logs) return;
+
+    let logs = state.logs;
+    if (filter !== "ALL") {
+      logs = logs.filter(l => l.service === filter);
+    }
+
+    stream.innerHTML = logs.slice(-25).map(l => {
+      const d = new Date(l.ts * 1000);
+      const timeStr = d.toTimeString().split(' ')[0];
+      return `
+        <div class="log-entry">
+          <span class="log-time">${timeStr}</span>
+          <span class="log-lvl-${l.level}">${l.level}</span>
+          <span class="log-srv">${l.service}</span>
+          <span class="log-msg">${l.message}</span>
+        </div>
+      `;
+    }).join("");
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  function renderRecovery() {
+    const grid = document.getElementById("recovery-grid");
+    if (!state.recovery || !state.recovery.options || !state.recovery.options.length) {
+      grid.innerHTML = `<div style="color:#9ca3af; font-size:13px;">No active incident requiring intervention. System operating within SLA.</div>`;
+      return;
+    }
+
+    grid.innerHTML = state.recovery.options.map(opt => {
+      const isRec = opt.recommended;
+      const scorePct = Math.round(opt.score * 100);
+      
+      const bars = (opt.projected_health || [0.4, 0.6, 0.8, 1.0]).map(h => 
+        `<div class="spark-bar" style="height:${Math.round(h * 24)}px; background:${h > 0.7 ? '#10b981' : '#3b82f6'};"></div>`
+      ).join("");
+
+      return `
+        <div class="strategy-card ${isRec ? 'recommended' : ''}">
+          ${isRec ? '<div class="rec-badge">Recommended</div>' : ''}
+          <div>
+            <div class="strat-name">${opt.strategy}</div>
+            <div style="font-size:12px; color:#60a5fa; font-weight:600;">Target: ${opt.target}</div>
+          </div>
+          
+          <div class="strat-meta">
+            <div>Saved: <strong>${opt.services_saved} services</strong></div>
+            <div>Time: <strong>${Math.round(opt.est_recovery_s)}s</strong></div>
+            <div>Cost: <strong>${Math.round(opt.cost * 100)}%</strong></div>
+            <div>Risk: <strong>${Math.round(opt.risk * 100)}%</strong></div>
+          </div>
+
+          <div>
+            <div style="font-size:10px; color:#94a3af; margin-bottom:2px;">Projected Recovery Health:</div>
+            <div class="sparkline-box">${bars}</div>
+          </div>
+
+          <div class="strat-rationale">"${opt.rationale}"</div>
+
+          <button class="${isRec ? 'btn-success' : 'btn-primary'}" onclick="applyStrategy('${opt.strategy}', '${opt.target}')">
+            ${isRec ? 'Apply Recommended Fix' : 'Execute Strategy'} (Score: ${scorePct}%)
+          </button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function injectFault() {
+    const srv = document.getElementById("fault-service").value;
+    const type = document.getElementById("fault-type").value;
+    try {
+      await fetch("/api/inject-fault", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ service: srv, type: type })
+      });
+      fetchState();
+    } catch (err) {
+      alert("Error injecting fault: " + err);
+    }
+  }
+
+  async function applyStrategy(strategy, target) {
+    try {
+      await fetch("/api/apply-strategy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ strategy: strategy, target: target })
+      });
+      fetchState();
+    } catch (err) {
+      alert("Error applying strategy: " + err);
+    }
+  }
+
+  async function togglePlayPause() {
+    const action = isRunning ? "pause" : "play";
+    await fetch("/api/control", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: action, speed: currentSpeed })
+    });
+    fetchState();
+  }
+
+  async function changeSpeed(val) {
+    currentSpeed = parseFloat(val);
+    await fetch("/api/control", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: isRunning ? "play" : "pause", speed: currentSpeed })
+    });
+    fetchState();
+  }
+
+  async function resetSim() {
+    await fetch("/api/reset", { method: "POST" });
+    fetchState();
+  }
+
+  function alertServiceDetails(srv) {
+    const m = (state.metrics || []).find(x => x.service === srv) || {};
+    alert(
+      `Service: ${srv}\n` +
+      `Status: ${m.status || 'unknown'}\n` +
+      `Latency p95: ${m.latency_p95_ms || 0} ms\n` +
+      `Error Rate: ${(m.error_rate || 0) * 100}%\n` +
+      `CPU: ${(m.cpu || 0) * 100}%\n` +
+      `Memory: ${(m.mem || 0) * 100}%\n` +
+      `Queue Depth: ${m.queue_depth || 0}`
+    );
+  }
+
+  // Populate log filter options
+  const filterSelect = document.getElementById("log-filter");
+  const srvs = [
+    "api-gateway", "auth", "user-service", "order-service", "payment", "inventory",
+    "db-primary", "db-replica", "cache", "message-queue", "notification", "search"
+  ];
+  srvs.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.innerText = s;
+    filterSelect.appendChild(opt);
+  });
+
+  // Start Polling loop every 1s
+  fetchState();
+  pollInterval = setInterval(fetchState, 1000);
+</script>
+
+</body>
+</html>

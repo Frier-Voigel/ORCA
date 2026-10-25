@@ -1,0 +1,61 @@
+{
+  "ts": 1730000000.0,
+  "paths": [
+    {
+      "from": "db-primary",
+      "to": "order-service",
+      "prob": 0.85,
+      "eta_s": 40.0
+    },
+    {
+      "from": "db-primary",
+      "to": "payment",
+      "prob": 0.8,
+      "eta_s": 35.0
+    },
+    {
+      "from": "db-primary",
+      "to": "inventory",
+      "prob": 0.68,
+      "eta_s": 60.0
+    },
+    {
+      "from": "db-primary",
+      "to": "auth",
+      "prob": 0.55,
+      "eta_s": 75.0
+    },
+    {
+      "from": "order-service",
+      "to": "api-gateway",
+      "prob": 0.6,
+      "eta_s": 95.0
+    },
+    {
+      "from": "payment",
+      "to": "order-service",
+      "prob": 0.72,
+      "eta_s": 50.0
+    },
+    {
+      "from": "auth",
+      "to": "user-service",
+      "prob": 0.45,
+      "eta_s": 110.0
+    }
+  ],
+  "blast_radius": {
+    "db-primary": 7,
+    "order-service": 3,
+    "payment": 2,
+    "inventory": 2,
+    "auth": 2,
+    "api-gateway": 1,
+    "user-service": 1,
+    "db-replica": 0,
+    "cache": 0,
+    "message-queue": 1,
+    "notification": 0,
+    "search": 0
+  }
+}

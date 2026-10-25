@@ -1,0 +1,20 @@
+{
+  "ts": 1730000000.0,
+  "candidates": [
+    {
+      "service": "db-primary",
+      "score": 0.91,
+      "explanation": "Earliest anomaly (t-4m), 6 downstream services affected, slow query errors in logs"
+    },
+    {
+      "service": "payment",
+      "score": 0.48,
+      "explanation": "Latency degradation and timeouts, but strongly correlated with upstream db-primary failure"
+    },
+    {
+      "service": "order-service",
+      "score": 0.35,
+      "explanation": "Cascading error rate increase caused by slow queries in db-primary and timeouts in payment"
+    }
+  ]
+}

@@ -1,0 +1,540 @@
+{
+  "n": 30,
+  "ticks": 120,
+  "window_ticks": 60,
+  "summary": {
+    "no_action": {
+      "downtime_s": 433.2,
+      "services_lost": 1.5,
+      "downtime_reduction_pct": 0.0
+    },
+    "naive_restart": {
+      "downtime_s": 308.2,
+      "services_lost": 1,
+      "downtime_reduction_pct": 28.9
+    },
+    "ai_recommended": {
+      "downtime_s": 157.5,
+      "services_lost": 0.5,
+      "downtime_reduction_pct": 63.6
+    }
+  },
+  "scenarios": [
+    {
+      "seed": 10000,
+      "root_cause": "payment",
+      "ai_choice": "restart",
+      "no_action": {
+        "downtime_s": 600,
+        "services_lost": 2
+      },
+      "naive_restart": {
+        "downtime_s": 55,
+        "services_lost": 0
+      },
+      "ai_recommended": {
+        "downtime_s": 55,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10001,
+      "root_cause": "auth",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 300,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10002,
+      "root_cause": "order-service",
+      "ai_choice": "rollback_deploy",
+      "no_action": {
+        "downtime_s": 600,
+        "services_lost": 2
+      },
+      "naive_restart": {
+        "downtime_s": 600,
+        "services_lost": 2
+      },
+      "ai_recommended": {
+        "downtime_s": 45,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10003,
+      "root_cause": "db-primary",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 590,
+        "services_lost": 2
+      },
+      "naive_restart": {
+        "downtime_s": 590,
+        "services_lost": 2
+      },
+      "ai_recommended": {
+        "downtime_s": 300,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10004,
+      "root_cause": "db-replica",
+      "ai_choice": "restart",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 20,
+        "services_lost": 0
+      },
+      "ai_recommended": {
+        "downtime_s": 20,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10005,
+      "root_cause": "notification",
+      "ai_choice": "scale_out",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 20,
+        "services_lost": 0
+      },
+      "ai_recommended": {
+        "downtime_s": 25,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10006,
+      "root_cause": "db-primary",
+      "ai_choice": "failover_to_replica",
+      "no_action": {
+        "downtime_s": 1420,
+        "services_lost": 5
+      },
+      "naive_restart": {
+        "downtime_s": 1175,
+        "services_lost": 4
+      },
+      "ai_recommended": {
+        "downtime_s": 320,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10007,
+      "root_cause": "payment",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 600,
+        "services_lost": 2
+      },
+      "naive_restart": {
+        "downtime_s": 600,
+        "services_lost": 2
+      },
+      "ai_recommended": {
+        "downtime_s": 325,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10008,
+      "root_cause": "search",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 300,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10009,
+      "root_cause": "order-service",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 600,
+        "services_lost": 2
+      },
+      "naive_restart": {
+        "downtime_s": 600,
+        "services_lost": 2
+      },
+      "ai_recommended": {
+        "downtime_s": 325,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10010,
+      "root_cause": "notification",
+      "ai_choice": "scale_out",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 20,
+        "services_lost": 0
+      },
+      "ai_recommended": {
+        "downtime_s": 25,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10011,
+      "root_cause": "inventory",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 300,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10012,
+      "root_cause": "notification",
+      "ai_choice": "rollback_deploy",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 15,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10013,
+      "root_cause": "db-replica",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 300,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10014,
+      "root_cause": "order-service",
+      "ai_choice": "rollback_deploy",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 15,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10015,
+      "root_cause": "db-replica",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 300,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10016,
+      "root_cause": "inventory",
+      "ai_choice": "rollback_deploy",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 15,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10017,
+      "root_cause": "message-queue",
+      "ai_choice": "restart",
+      "no_action": {
+        "downtime_s": 600,
+        "services_lost": 2
+      },
+      "naive_restart": {
+        "downtime_s": 55,
+        "services_lost": 0
+      },
+      "ai_recommended": {
+        "downtime_s": 55,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10018,
+      "root_cause": "order-service",
+      "ai_choice": "restart",
+      "no_action": {
+        "downtime_s": 600,
+        "services_lost": 2
+      },
+      "naive_restart": {
+        "downtime_s": 55,
+        "services_lost": 0
+      },
+      "ai_recommended": {
+        "downtime_s": 55,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10019,
+      "root_cause": "search",
+      "ai_choice": "rollback_deploy",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 15,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10020,
+      "root_cause": "auth",
+      "ai_choice": "restart",
+      "no_action": {
+        "downtime_s": 205,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 0,
+        "services_lost": 0
+      },
+      "ai_recommended": {
+        "downtime_s": 0,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10021,
+      "root_cause": "db-replica",
+      "ai_choice": "restart",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 20,
+        "services_lost": 0
+      },
+      "ai_recommended": {
+        "downtime_s": 20,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10022,
+      "root_cause": "inventory",
+      "ai_choice": "rollback_deploy",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 15,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10023,
+      "root_cause": "inventory",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 300,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10024,
+      "root_cause": "db-primary",
+      "ai_choice": "failover_to_replica",
+      "no_action": {
+        "downtime_s": 880,
+        "services_lost": 3
+      },
+      "naive_restart": {
+        "downtime_s": 880,
+        "services_lost": 3
+      },
+      "ai_recommended": {
+        "downtime_s": 310,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10025,
+      "root_cause": "auth",
+      "ai_choice": "rollback_deploy",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 15,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10026,
+      "root_cause": "order-service",
+      "ai_choice": "restart",
+      "no_action": {
+        "downtime_s": 600,
+        "services_lost": 2
+      },
+      "naive_restart": {
+        "downtime_s": 55,
+        "services_lost": 0
+      },
+      "ai_recommended": {
+        "downtime_s": 55,
+        "services_lost": 0
+      }
+    },
+    {
+      "seed": 10027,
+      "root_cause": "search",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 300,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10028,
+      "root_cause": "user-service",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 300,
+        "services_lost": 1
+      }
+    },
+    {
+      "seed": 10029,
+      "root_cause": "search",
+      "ai_choice": "shed_load",
+      "no_action": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "naive_restart": {
+        "downtime_s": 300,
+        "services_lost": 1
+      },
+      "ai_recommended": {
+        "downtime_s": 300,
+        "services_lost": 1
+      }
+    }
+  ],
+  "prediction_and_rca": {
+    "rca_top1_accuracy": 1.0,
+    "rca_top3_accuracy": 1.0,
+    "predictor_root_detection_rate": 0.97,
+    "median_warning_lead_time_s": 50
+  }
+}

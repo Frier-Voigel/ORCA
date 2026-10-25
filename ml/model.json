@@ -1,0 +1,16 @@
+{
+  "error_excess": 14.0,
+  "error_rate_w5_slope": 8.0,
+  "latency_excess": 0.8,
+  "latency_p95_ms_w5_slope": 0.005,
+  "cpu_excess": 10.0,
+  "mem_excess": 12.0,
+  "queue_excess": 0.15,
+  "upstream_worst_stress": 5.5,
+  "upstream_degraded_count": 2.5,
+  "log_error_count": 1.5,
+  "log_has_timeout": 2.0,
+  "log_has_slow_query": 2.0,
+  "log_has_connection_pool": 2.0,
+  "bias": -3.5
+}

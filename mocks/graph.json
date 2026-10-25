@@ -1,0 +1,186 @@
+{
+  "nodes": [
+    {
+      "id": "api-gateway",
+      "type": "gateway",
+      "criticality": 1.0
+    },
+    {
+      "id": "auth",
+      "type": "service",
+      "criticality": 0.8
+    },
+    {
+      "id": "user-service",
+      "type": "service",
+      "criticality": 0.7
+    },
+    {
+      "id": "order-service",
+      "type": "service",
+      "criticality": 0.9
+    },
+    {
+      "id": "payment",
+      "type": "service",
+      "criticality": 0.9
+    },
+    {
+      "id": "inventory",
+      "type": "service",
+      "criticality": 0.8
+    },
+    {
+      "id": "db-primary",
+      "type": "database",
+      "criticality": 0.95
+    },
+    {
+      "id": "db-replica",
+      "type": "database",
+      "criticality": 0.7
+    },
+    {
+      "id": "cache",
+      "type": "cache",
+      "criticality": 0.6
+    },
+    {
+      "id": "message-queue",
+      "type": "queue",
+      "criticality": 0.75
+    },
+    {
+      "id": "notification",
+      "type": "service",
+      "criticality": 0.4
+    },
+    {
+      "id": "search",
+      "type": "service",
+      "criticality": 0.5
+    }
+  ],
+  "edges": [
+    {
+      "source": "api-gateway",
+      "target": "auth",
+      "weight": 0.85,
+      "kind": "hard"
+    },
+    {
+      "source": "api-gateway",
+      "target": "user-service",
+      "weight": 0.75,
+      "kind": "soft"
+    },
+    {
+      "source": "api-gateway",
+      "target": "order-service",
+      "weight": 0.9,
+      "kind": "hard"
+    },
+    {
+      "source": "api-gateway",
+      "target": "search",
+      "weight": 0.5,
+      "kind": "soft"
+    },
+    {
+      "source": "auth",
+      "target": "db-primary",
+      "weight": 0.8,
+      "kind": "hard"
+    },
+    {
+      "source": "auth",
+      "target": "cache",
+      "weight": 0.6,
+      "kind": "soft"
+    },
+    {
+      "source": "user-service",
+      "target": "auth",
+      "weight": 0.7,
+      "kind": "hard"
+    },
+    {
+      "source": "user-service",
+      "target": "db-primary",
+      "weight": 0.75,
+      "kind": "hard"
+    },
+    {
+      "source": "user-service",
+      "target": "cache",
+      "weight": 0.5,
+      "kind": "soft"
+    },
+    {
+      "source": "order-service",
+      "target": "payment",
+      "weight": 0.9,
+      "kind": "hard"
+    },
+    {
+      "source": "order-service",
+      "target": "inventory",
+      "weight": 0.85,
+      "kind": "hard"
+    },
+    {
+      "source": "order-service",
+      "target": "db-primary",
+      "weight": 0.8,
+      "kind": "hard"
+    },
+    {
+      "source": "order-service",
+      "target": "message-queue",
+      "weight": 0.65,
+      "kind": "soft"
+    },
+    {
+      "source": "payment",
+      "target": "db-primary",
+      "weight": 0.9,
+      "kind": "hard"
+    },
+    {
+      "source": "inventory",
+      "target": "db-primary",
+      "weight": 0.85,
+      "kind": "hard"
+    },
+    {
+      "source": "inventory",
+      "target": "cache",
+      "weight": 0.4,
+      "kind": "soft"
+    },
+    {
+      "source": "search",
+      "target": "db-replica",
+      "weight": 0.7,
+      "kind": "soft"
+    },
+    {
+      "source": "search",
+      "target": "cache",
+      "weight": 0.6,
+      "kind": "soft"
+    },
+    {
+      "source": "notification",
+      "target": "message-queue",
+      "weight": 0.8,
+      "kind": "hard"
+    },
+    {
+      "source": "db-replica",
+      "target": "db-primary",
+      "weight": 0.75,
+      "kind": "soft"
+    }
+  ]
+}

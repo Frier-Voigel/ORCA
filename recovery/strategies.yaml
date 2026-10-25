@@ -1,0 +1,40 @@
+# Strategy catalogue. cost/risk in [0,1]. applies_to: "any" or a list of fault types.
+# requires_replica: only offered if the target has a replica. Simulation effects live in sim/simulator.py.
+weights:            # score = sum(weight * term); terms are all 0..1, higher is better
+  services_saved: 0.30
+  health: 0.25
+  speed: 0.15
+  low_cost: 0.15
+  low_risk: 0.15
+strategies:
+  restart:
+    description: Restart the service to clear its bad state
+    cost: 0.3
+    risk: 0.5
+    applies_to: any
+  scale_out:
+    description: Add capacity to absorb load
+    cost: 0.5
+    risk: 0.2
+    applies_to: any
+  failover_to_replica:
+    description: Reroute dependants to the replica
+    cost: 0.4
+    risk: 0.25
+    applies_to: any
+    requires_replica: true
+  circuit_breaker_isolate:
+    description: Cut calls to the failing service so failure stops spreading (dependants lose features)
+    cost: 0.25
+    risk: 0.45
+    applies_to: any
+  rollback_deploy:
+    description: Roll back the latest release
+    cost: 0.3
+    risk: 0.2
+    applies_to: [bad_deploy]
+  shed_load:
+    description: Drop low-priority traffic to protect the service
+    cost: 0.1
+    risk: 0.4
+    applies_to: any

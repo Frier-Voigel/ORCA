@@ -1,0 +1,111 @@
+{
+  "ts": 1730000000.0,
+  "predictions": [
+    {
+      "service": "db-primary",
+      "fail_prob": 0.95,
+      "horizon_s": 180.0,
+      "top_signals": [
+        "latency_p95_ms",
+        "cpu",
+        "queue_depth"
+      ]
+    },
+    {
+      "service": "order-service",
+      "fail_prob": 0.82,
+      "horizon_s": 300.0,
+      "top_signals": [
+        "error_rate",
+        "upstream:db-primary",
+        "latency_p95_ms"
+      ]
+    },
+    {
+      "service": "payment",
+      "fail_prob": 0.78,
+      "horizon_s": 240.0,
+      "top_signals": [
+        "latency_p95_ms",
+        "upstream:db-primary",
+        "error_rate"
+      ]
+    },
+    {
+      "service": "inventory",
+      "fail_prob": 0.65,
+      "horizon_s": 360.0,
+      "top_signals": [
+        "latency_p95_ms",
+        "upstream:db-primary"
+      ]
+    },
+    {
+      "service": "api-gateway",
+      "fail_prob": 0.58,
+      "horizon_s": 420.0,
+      "top_signals": [
+        "downstream:order-service",
+        "error_rate"
+      ]
+    },
+    {
+      "service": "auth",
+      "fail_prob": 0.42,
+      "horizon_s": 480.0,
+      "top_signals": [
+        "latency_p95_ms",
+        "upstream:db-primary"
+      ]
+    },
+    {
+      "service": "user-service",
+      "fail_prob": 0.38,
+      "horizon_s": 540.0,
+      "top_signals": [
+        "upstream:auth",
+        "latency_p95_ms"
+      ]
+    },
+    {
+      "service": "message-queue",
+      "fail_prob": 0.15,
+      "horizon_s": 600.0,
+      "top_signals": [
+        "queue_depth"
+      ]
+    },
+    {
+      "service": "search",
+      "fail_prob": 0.12,
+      "horizon_s": 600.0,
+      "top_signals": [
+        "latency_p95_ms"
+      ]
+    },
+    {
+      "service": "db-replica",
+      "fail_prob": 0.08,
+      "horizon_s": 600.0,
+      "top_signals": [
+        "replication_lag"
+      ]
+    },
+    {
+      "service": "cache",
+      "fail_prob": 0.05,
+      "horizon_s": 600.0,
+      "top_signals": [
+        "mem"
+      ]
+    },
+    {
+      "service": "notification",
+      "fail_prob": 0.04,
+      "horizon_s": 600.0,
+      "top_signals": [
+        "queue_depth"
+      ]
+    }
+  ]
+}
